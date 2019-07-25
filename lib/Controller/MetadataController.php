@@ -111,6 +111,7 @@ class MetadataController extends Controller {
                         if (!array_key_exists('GPS', $sections)) {
                           $sections['GPS'] = $this->readJpegGps($file);
                         }
+                        $sections['ACDSEE'] = $this->readACDSeeXmp($file);
                         $metadata = $this->getImageMetadata($sections, $lat, $lon, $loc);
 //                        $this->dump($sections, $metadata);
                     }
@@ -281,6 +282,25 @@ class MetadataController extends Controller {
         });
 
         return array_merge($iptc, $xmp);
+    }
+
+    protected function readACDSeeXmp($file) {
+        $acdsee = array();
+
+        $this->readJpegFile($file, function($hnd, $marker, $size) use (&$acdsee) {
+            if (($marker === "\xE1") && ($size > 29)) {                // APP1 with enough data
+                $data = fread($hnd, 29);
+                $size -= 29;
+
+                if ($data === 'http://ns.adobe.com/xap/1.0/'."\x00") {
+                    $xmpMetadata = XmpACDSeeMetadata::fromData(fread($hnd, $size));
+                    $acdsee = $xmpMetadata->getArray();
+                }
+
+            }
+        });
+
+        return $acdsee;
     }
 
     protected function readJpegFile($file, $callback) {
@@ -552,6 +572,7 @@ class MetadataController extends Controller {
         $exif = $this->getVal('EXIF', $sections) ?: array();
         $gps = $this->getVal('GPS', $sections) ?: array();
         $xmp = $this->getVal('XMP', $sections) ?: array();
+        $acdsee = $this->getVal('ACDSEE', $sections) ?: array();
 
         if ($v = $this->getVal('title', $xmp)) {
             $this->addValT('Title', $v, $return);
@@ -721,6 +742,47 @@ class MetadataController extends Controller {
             $loc['country'] = $v[0];
         }
 
+        if ($v = $this->getVal('datetime', $acdsee)) {
+            $this->addValT('ACDSEE Databasedate', $v[0],  $return);
+        }
+
+        if ($v = $this->getVal('rating', $acdsee)) {
+            $this->addValT('ACDSEE rating', $v[0],  $return);
+        }
+
+        if ($v = $this->getVal('tagged', $acdsee)) {
+            $this->addValT('ACDSEE tagged', $v[0],  $return);
+        }
+
+        if ($v = $this->getVal('caption', $acdsee)) {
+            $this->addValT('ACDSEE caption', $v[0],  $return);
+        }
+
+        if ($v = $this->getVal('author', $acdsee)) {
+            $this->addValT('ACDSEE author', $v[0],  $return);
+        }
+
+        if ($v = $this->getVal('description', $acdsee)) {
+            $this->addValT('ACDSEE description', $v[0],  $return);
+        }
+
+        if ($a = $this->getVal('categories', $acdsee)) {
+            $v = "";
+            if (is_array($a)) {
+                $this->formatCategories($a,$v);
+            }
+
+            $this->addValT('ACDSEE categories', $v, $return);
+        }
+
+        if ($v = $this->getVal('notes', $acdsee)) {
+            $this->addValT('ACDSEE notes', $v[0],  $return);
+        }
+
+        if ($v = $this->getVal('collections', $acdsee)) {
+            $this->addValT('ACDSEE collections', $v[0],  $return);
+        }
+
         return $return;
     }
 
@@ -858,6 +920,14 @@ class MetadataController extends Controller {
 
             if (!is_numeric($key)) {
                 $array[$key] = '('.$key.') '.$val;
+            }
+        }
+    }
+
+    protected function formatCategories($array, &$value) {
+        foreach ($array[0] as $val) {
+            if($val['level']>1 && $val['type']!="close"){
+                $value .= sprintf ("%s%s %s<br>",str_repeat("-", $val['level']-1), $val['attributes']['ASSIGNED'] == "1" ? "x" : ">" ,$val['value']);
             }
         }
     }
