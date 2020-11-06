@@ -1,11 +1,11 @@
 <?php
+
 /////////////////////////////////////////////////////////////////
 /// getID3() by James Heinrich <info@getid3.org>               //
-//  available at http://getid3.sourceforge.net                 //
-//            or http://www.getid3.org                         //
-//          also https://github.com/JamesHeinrich/getID3       //
-/////////////////////////////////////////////////////////////////
-// See readme.txt for more details                             //
+//  available at https://github.com/JamesHeinrich/getID3       //
+//            or https://www.getid3.org                        //
+//            or http://getid3.sourceforge.net                 //
+//  see readme.txt for more details                            //
 /////////////////////////////////////////////////////////////////
 //                                                             //
 // module.tag.apetag.php                                       //
@@ -19,11 +19,27 @@ namespace OCA\Metadata\GetID3\Tags;
 use OCA\Metadata\GetID3\getid3_handler;
 use OCA\Metadata\GetID3\getid3_lib;
 
+if (!defined('GETID3_INCLUDEPATH')) { // prevent path-exposing attacks that access modules directly on public webservers
+	exit;
+}
+
 class getid3_apetag extends getid3_handler
 {
-	public $inline_attachments = true; // true: return full data for all attachments; false: return no data for all attachments; integer: return data for attachments <= than this; string: save as file to this directory
+	/**
+	 * true: return full data for all attachments;
+	 * false: return no data for all attachments;
+	 * integer: return data for attachments <= than this;
+	 * string: save as file to this directory.
+	 *
+	 * @var int|bool|string
+	 */
+	public $inline_attachments = true;
+
 	public $overrideendoffset  = 0;
 
+	/**
+	 * @return bool
+	 */
 	public function Analyze() {
 		$info = &$this->getid3->info;
 
@@ -155,8 +171,8 @@ class getid3_apetag extends getid3_handler
 			switch (strtolower($item_key)) {
 				// http://wiki.hydrogenaud.io/index.php?title=ReplayGain#MP3Gain
 				case 'replaygain_track_gain':
-					if (preg_match('#^[\\-\\+][0-9\\.,]{8}$#', $thisfile_ape_items_current['data'][0])) {
-						$thisfile_replaygain['track']['adjustment'] = (float) str_replace(',', '.', $thisfile_ape_items_current['data'][0]); // float casting will see "0,95" as zero!
+					if (preg_match('#^([\\-\\+][0-9\\.,]{8})( dB)?$#', $thisfile_ape_items_current['data'][0], $matches)) {
+						$thisfile_replaygain['track']['adjustment'] = (float) str_replace(',', '.', $matches[1]); // float casting will see "0,95" as zero!
 						$thisfile_replaygain['track']['originator'] = 'unspecified';
 					} else {
 						$this->warning('MP3gainTrackGain value in APEtag appears invalid: "'.$thisfile_ape_items_current['data'][0].'"');
@@ -164,8 +180,8 @@ class getid3_apetag extends getid3_handler
 					break;
 
 				case 'replaygain_track_peak':
-					if (preg_match('#^[0-9\\.,]{8}$#', $thisfile_ape_items_current['data'][0])) {
-						$thisfile_replaygain['track']['peak']       = (float) str_replace(',', '.', $thisfile_ape_items_current['data'][0]); // float casting will see "0,95" as zero!
+					if (preg_match('#^([0-9\\.,]{8})$#', $thisfile_ape_items_current['data'][0], $matches)) {
+						$thisfile_replaygain['track']['peak']       = (float) str_replace(',', '.', $matches[1]); // float casting will see "0,95" as zero!
 						$thisfile_replaygain['track']['originator'] = 'unspecified';
 						if ($thisfile_replaygain['track']['peak'] <= 0) {
 							$this->warning('ReplayGain Track peak from APEtag appears invalid: '.$thisfile_replaygain['track']['peak'].' (original value = "'.$thisfile_ape_items_current['data'][0].'")');
@@ -176,8 +192,8 @@ class getid3_apetag extends getid3_handler
 					break;
 
 				case 'replaygain_album_gain':
-					if (preg_match('#^[\\-\\+][0-9\\.,]{8}$#', $thisfile_ape_items_current['data'][0])) {
-						$thisfile_replaygain['album']['adjustment'] = (float) str_replace(',', '.', $thisfile_ape_items_current['data'][0]); // float casting will see "0,95" as zero!
+					if (preg_match('#^([\\-\\+][0-9\\.,]{8})( dB)?$#', $thisfile_ape_items_current['data'][0], $matches)) {
+						$thisfile_replaygain['album']['adjustment'] = (float) str_replace(',', '.', $matches[1]); // float casting will see "0,95" as zero!
 						$thisfile_replaygain['album']['originator'] = 'unspecified';
 					} else {
 						$this->warning('MP3gainAlbumGain value in APEtag appears invalid: "'.$thisfile_ape_items_current['data'][0].'"');
@@ -185,8 +201,8 @@ class getid3_apetag extends getid3_handler
 					break;
 
 				case 'replaygain_album_peak':
-					if (preg_match('#^[0-9\\.,]{8}$#', $thisfile_ape_items_current['data'][0])) {
-						$thisfile_replaygain['album']['peak']       = (float) str_replace(',', '.', $thisfile_ape_items_current['data'][0]); // float casting will see "0,95" as zero!
+					if (preg_match('#^([0-9\\.,]{8})$#', $thisfile_ape_items_current['data'][0], $matches)) {
+						$thisfile_replaygain['album']['peak']       = (float) str_replace(',', '.', $matches[1]); // float casting will see "0,95" as zero!
 						$thisfile_replaygain['album']['originator'] = 'unspecified';
 						if ($thisfile_replaygain['album']['peak'] <= 0) {
 							$this->warning('ReplayGain Album peak from APEtag appears invalid: '.$thisfile_replaygain['album']['peak'].' (original value = "'.$thisfile_ape_items_current['data'][0].'")');
@@ -230,7 +246,7 @@ class getid3_apetag extends getid3_handler
 				case 'tracknumber':
 					if (is_array($thisfile_ape_items_current['data'])) {
 						foreach ($thisfile_ape_items_current['data'] as $comment) {
-							$thisfile_ape['comments']['track'][] = $comment;
+							$thisfile_ape['comments']['track_number'][] = $comment;
 						}
 					}
 					break;
@@ -291,7 +307,7 @@ class getid3_apetag extends getid3_handler
 							}
 						} elseif (is_string($this->inline_attachments)) {
 							$this->inline_attachments = rtrim(str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $this->inline_attachments), DIRECTORY_SEPARATOR);
-							if (!is_dir($this->inline_attachments) || !is_writable($this->inline_attachments)) {
+							if (!is_dir($this->inline_attachments) || !getID3::is_writable($this->inline_attachments)) {
 								// cannot write, skip
 								$this->warning('attachment at '.$thisfile_ape_items_current['offset'].' cannot be saved to "'.$this->inline_attachments.'" (not writable)');
 								unset($thisfile_ape_items_current['data']);
@@ -301,7 +317,7 @@ class getid3_apetag extends getid3_handler
 						// if we get this far, must be OK
 						if (is_string($this->inline_attachments)) {
 							$destination_filename = $this->inline_attachments.DIRECTORY_SEPARATOR.md5($info['filenamepath']).'_'.$thisfile_ape_items_current['data_offset'];
-							if (!file_exists($destination_filename) || is_writable($destination_filename)) {
+							if (!file_exists($destination_filename) || getID3::is_writable($destination_filename)) {
 								file_put_contents($destination_filename, $thisfile_ape_items_current['data']);
 							} else {
 								$this->warning('attachment at '.$thisfile_ape_items_current['offset'].' cannot be saved to "'.$destination_filename.'" (not writable)');
@@ -340,6 +356,11 @@ class getid3_apetag extends getid3_handler
 		return true;
 	}
 
+	/**
+	 * @param string $APEheaderFooterData
+	 *
+	 * @return array|false
+	 */
 	public function parseAPEheaderFooter($APEheaderFooterData) {
 		// http://www.uni-jena.de/~pfk/mpp/sv8/apeheader.html
 
@@ -364,6 +385,11 @@ class getid3_apetag extends getid3_handler
 		return $headerfooterinfo;
 	}
 
+	/**
+	 * @param int $rawflagint
+	 *
+	 * @return array
+	 */
 	public function parseAPEtagFlags($rawflagint) {
 		// "Note: APE Tags 1.0 do not use any of the APE Tag flags.
 		// All are set to zero on creation and ignored on reading."
@@ -379,6 +405,11 @@ class getid3_apetag extends getid3_handler
 		return $flags;
 	}
 
+	/**
+	 * @param int $contenttypeid
+	 *
+	 * @return string
+	 */
 	public function APEcontentTypeFlagLookup($contenttypeid) {
 		static $APEcontentTypeFlagLookup = array(
 			0 => 'utf-8',
@@ -389,6 +420,11 @@ class getid3_apetag extends getid3_handler
 		return (isset($APEcontentTypeFlagLookup[$contenttypeid]) ? $APEcontentTypeFlagLookup[$contenttypeid] : 'invalid');
 	}
 
+	/**
+	 * @param string $itemkey
+	 *
+	 * @return bool
+	 */
 	public function APEtagItemIsUTF8Lookup($itemkey) {
 		static $APEtagItemIsUTF8Lookup = array(
 			'title',

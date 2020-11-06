@@ -2,16 +2,21 @@
 namespace OCA\Metadata\Tests\Controller;
 
 use OCA\Metadata\Controller\MetadataController;
+use OCA\Metadata\Service\MetadataService;
 use Test\TestCase;
 
 /**
  * @group DB
  */
 class MetadataControllerTest extends TestCase {
+    const EMSP = "\xe2\x80\x83";
+    const BLACK_STAR = "\xE2\x98\x85";
+    const WHITE_STAR = "\xE2\x98\x86";
+
     private $user;
     private $controller;
 
-    public function setUp() {
+    public function setUp(): void {
         parent::setUp();
 
         $this->user = 'user_' . uniqid();
@@ -28,7 +33,8 @@ class MetadataControllerTest extends TestCase {
 
         $this->controller = new MetadataController(
             'metadata',
-            $this->createMock(\OCP\IRequest::class)
+            $this->createMock(\OCP\IRequest::class),
+            new MetadataService()
         );
     }
 
@@ -44,15 +50,17 @@ class MetadataControllerTest extends TestCase {
         $this->assertEquals('success', $data['response']);
 
         $metadata = $data['metadata'];
+        $this->assertEquals('WinTitle', $metadata['Title']);
+        $this->assertEquals('WinSubject', $metadata['Description']);
         $this->assertEquals('2017-06-26 18:11:09', $metadata['Date created']);
         $this->assertEquals('4032 x 3016', $metadata['Dimensions']);
         $this->assertEquals('Xiaomi MI 6', $metadata['Camera used']);
         $this->assertEquals('sagit-user 7.1.1 NMF26X V8.2.2.0.NCAMIEC release-keys', $metadata['Software']);
-        $this->assertEquals('1/649 sec.&emsp;f/1.8&emsp;ISO-100', $metadata['Exposure']);
+        $this->assertEquals('1/649 sec.' . self::EMSP . 'f/1.8' . self::EMSP . 'ISO-100', $metadata['Exposure']);
         $this->assertEquals('3.82 mm (35 mm equivalent: 27 mm)', $metadata['Focal length']);
         $this->assertEquals('Center Weighted Average', $metadata['Metering mode']);
         $this->assertEquals('No flash, compulsory', $metadata['Flash mode']);
-        $this->assertEquals('N 51° 31\' 31.58"&emsp;W 0° 9\' 34.05"', $metadata['GPS coordinates']);
+        $this->assertEquals('N 51° 31\' 31.58"' . self::EMSP . 'W 0° 9\' 34.05"', $metadata['GPS coordinates']);
         $this->assertEquals('0 m', $metadata['GPS altitude']);
     }
 
@@ -68,14 +76,15 @@ class MetadataControllerTest extends TestCase {
         $this->assertEquals(['Rose2', 'Rose1'], $metadata['People']);
         $this->assertEquals(['Rose/Rose1', 'Rose/Rose2'], $metadata['Tags']);
         $this->assertEquals(['Rose', 'Rose1', 'Rose2'], $metadata['Keywords']);
+        $this->assertEquals(self::BLACK_STAR . self::BLACK_STAR . self::BLACK_STAR . self::WHITE_STAR . self::WHITE_STAR, $metadata['Rating']);
         $this->assertEquals('2017-06-26 18:11:09', $metadata['Date created']);
         $this->assertEquals('96 x 128', $metadata['Dimensions']);
         $this->assertEquals('Xiaomi MI 6', $metadata['Camera used']);
-        $this->assertEquals('1/649 sec.&emsp;f/1.8&emsp;ISO-100', $metadata['Exposure']);
+        $this->assertEquals('1/649 sec.' . self::EMSP . 'f/1.8' . self::EMSP . 'ISO-100', $metadata['Exposure']);
         $this->assertEquals('3.82 mm (35 mm equivalent: 27 mm)', $metadata['Focal length']);
         $this->assertEquals('Center Weighted Average', $metadata['Metering mode']);
         $this->assertEquals('No flash, compulsory', $metadata['Flash mode']);
-        $this->assertEquals('N 51° 31\' 31.58"&emsp;W 0° 9\' 34.05"', $metadata['GPS coordinates']);
+        $this->assertEquals('N 51° 31\' 31.58"' . self::EMSP . 'W 0° 9\' 34.05"', $metadata['GPS coordinates']);
         $this->assertEquals('0 m', $metadata['GPS altitude']);
     }
 
@@ -91,14 +100,33 @@ class MetadataControllerTest extends TestCase {
         $this->assertEquals(['Rose2', 'Rose1'], $metadata['People']);
         $this->assertEquals(['Rose/Rose1', 'Rose/Rose2'], $metadata['Tags']);
         $this->assertEquals(['Rose', 'Rose1', 'Rose2'], $metadata['Keywords']);
+        $this->assertEquals(self::BLACK_STAR . self::BLACK_STAR . self::BLACK_STAR . self::WHITE_STAR . self::WHITE_STAR, $metadata['Rating']);
         $this->assertEquals('2017-06-26 18:11:09', $metadata['Date created']);
         $this->assertEquals('96 x 128', $metadata['Dimensions']);
         $this->assertEquals('Xiaomi MI 6', $metadata['Camera used']);
-        $this->assertEquals('1/649 sec.&emsp;f/1.8&emsp;ISO-100', $metadata['Exposure']);
+        $this->assertEquals('1/649 sec.' . self::EMSP . 'f/1.8' . self::EMSP . 'ISO-100', $metadata['Exposure']);
         $this->assertEquals('3.82 mm (35 mm equivalent: 27 mm)', $metadata['Focal length']);
         $this->assertEquals('Center Weighted Average', $metadata['Metering mode']);
         $this->assertEquals('No flash, compulsory', $metadata['Flash mode']);
-        $this->assertEquals('N 51° 31\' 31.58"&emsp;W 0° 9\' 34.05"', $metadata['GPS coordinates']);
+        $this->assertEquals('N 51° 31\' 31.58"' . self::EMSP . 'W 0° 9\' 34.05"', $metadata['GPS coordinates']);
+        $this->assertEquals('0 m', $metadata['GPS altitude']);
+    }
+
+    public function testHeic() {
+        $res = $this->controller->get('IMG_20170626_181110.heic');
+        $data = $res->getData();
+        $this->assertEquals('success', $data['response']);
+
+        $metadata = $data['metadata'];
+        $this->assertEquals('2017-06-26 18:11:09', $metadata['Date created']);
+        $this->assertEquals('4032 x 3016', $metadata['Dimensions']);
+        $this->assertEquals('Xiaomi MI 6', $metadata['Camera used']);
+        $this->assertEquals('sagit-user 7.1.1 NMF26X V8.2.2.0.NCAMIEC release-keys', $metadata['Software']);
+        $this->assertEquals('1/649 sec.' . self::EMSP . 'f/1.8' . self::EMSP . 'ISO-100', $metadata['Exposure']);
+        $this->assertEquals('3.82 mm (35 mm equivalent: 27 mm)', $metadata['Focal length']);
+        $this->assertEquals('Center Weighted Average', $metadata['Metering mode']);
+        $this->assertEquals('No flash, compulsory', $metadata['Flash mode']);
+        $this->assertEquals('N 51° 31\' 31.58"' . self::EMSP . 'W 0° 9\' 34.05"', $metadata['GPS coordinates']);
         $this->assertEquals('0 m', $metadata['GPS altitude']);
     }
 
@@ -123,6 +151,12 @@ class MetadataControllerTest extends TestCase {
 
         $metadata = $data['metadata'];
         $this->assertEquals('Viágem', $metadata['Title']);
+        $this->assertEquals('Viágem', $metadata['Description']);
+        $this->assertEquals('Viágem', $metadata['Comment']);
+        $this->assertEquals('Viágem', $metadata['Keywords']);
+        $this->assertEquals('Viágem', $metadata['Author']);
+        $this->assertEquals('Viágem', $metadata['Copyright']);
+        $this->assertEquals('Viágem', $metadata['Camera used']);
     }
 
     public function testJpgGps() {
@@ -132,7 +166,7 @@ class MetadataControllerTest extends TestCase {
 
         $metadata = $data['metadata'];
         $this->assertEquals('Canon EOS 600D', $metadata['Camera used']);
-        $this->assertEquals('N 46° 46\' 52.51"&emsp;E 15° 30\' 51.93"', $metadata['GPS coordinates']);
+        $this->assertEquals('N 46° 46\' 52.51"' . self::EMSP . 'E 15° 30\' 51.93"', $metadata['GPS coordinates']);
         $this->assertEquals('415 m', $metadata['GPS altitude']);
     }
 

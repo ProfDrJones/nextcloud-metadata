@@ -1,0 +1,14 @@
+{ "translations": {
+    "Location" : "Asukoht",
+    "Title" : "Pealkiri",
+    "Copyright" : "Autoriõigused",
+    "Date" : "Kuupäev",
+    "Comment" : "Kommentaar",
+    "Description" : "Kirjeldus",
+    "Rating" : "Hinnang",
+    "Tags" : "Sildid",
+    "Unknown" : "Teadmata",
+    "Pattern" : "Muster",
+    "Other" : "Muu"
+},"pluralForm" :"nplurals=2; plural=(n != 1);"
+}

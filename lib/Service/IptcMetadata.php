@@ -1,5 +1,5 @@
 <?php
-namespace OCA\Metadata\Controller;
+namespace OCA\Metadata\Service;
 
 class IptcMetadata {
     const MAP = array(
@@ -23,11 +23,11 @@ class IptcMetadata {
     private $data = array();
 
     private function __construct($bin) {
-        $iptc = iptcparse($bin);
-
-        foreach (self::MAP as $k => $v) {
-            if (array_key_exists($k, $iptc)) {
-                $this->data[$v] = $iptc[$k];
+        if ($iptc = iptcparse($bin)) {
+            foreach (self::MAP as $k => $v) {
+                if (array_key_exists($k, $iptc)) {
+                    $this->data[$v] = $iptc[$k];
+                }
             }
         }
     }

@@ -1,6 +1,57 @@
 # Changelog
 
 ## [Unreleased]
+### Fixed
+- PHP 7.4 errors fixed by updating GetID3 to 1.9.20
+  [#62](https://github.com/gino0631/nextcloud-metadata/issues/62)
+- Null parameter in array_merge()
+  [#66](https://github.com/gino0631/nextcloud-metadata/issues/66)
+
+## 0.12.0 – 2020-07-03
+### Added
+- Support for HEIC image files
+  [#41](https://github.com/gino0631/nextcloud-metadata/issues/41)
+- Support for image Subject metadata written by Windows
+  [#57](https://github.com/gino0631/nextcloud-metadata/issues/57)
+- Support for ratings
+  [#39](https://github.com/gino0631/nextcloud-metadata/issues/39)
+- Translations to many languages from
+  [Transifex](https://www.transifex.com/nextcloud/nextcloud/metadata/)
+
+### Changed
+- Display of exposure bias
+  [#55](https://github.com/gino0631/nextcloud-metadata/issues/55)
+
+### Fixed
+- Trying to access array offset on value of type bool
+  [#54](https://github.com/gino0631/nextcloud-metadata/issues/54)
+- Unparenthesized `a ? b : c ? d : e` is deprecated
+  [#53](https://github.com/gino0631/nextcloud-metadata/issues/53)
+- Handling of GPS coordinates encoded as all zeros
+  [#61](https://github.com/gino0631/nextcloud-metadata/issues/61)
+
+## 0.11.1 – 2020-01-21
+### Fixed
+- Nextcloud crash since 0.11.0
+  [#49](https://github.com/gino0631/nextcloud-metadata/issues/49)
+
+## 0.11.0 – 2020-01-20
+### Added
+- Compatibility with Nextcloud 18.
+
+### Fixed
+- App sidebar not displayed in Nextcloud 18
+  [#45](https://github.com/gino0631/nextcloud-metadata/issues/45)
+- Exception when trying to show metadata of a certain MP3 file
+  [#44](https://github.com/gino0631/nextcloud-metadata/issues/44)
+
+## 0.10.0 – 2019-10-05
+### Added
+- Compatibility with Nextcloud 17.
+
+### Fixed
+- Handling of Unicode comments and missing IPTC metadata fixed
+  [#36](https://github.com/gino0631/nextcloud-metadata/issues/36)
 
 ## 0.9.0 – 2019-01-27
 ### Added

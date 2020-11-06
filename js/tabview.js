@@ -18,7 +18,7 @@
                 this.$el.html('<div style="text-align:center; word-wrap:break-word;" class="get-metadata"><p><img src="'
                     + OC.imagePath('core','loading.gif')
                     + '"><br><br></p><p>'
-                    + t('metadata', 'Reading metadata ...')
+                    + t('metadata', 'Reading metadata …')
                     + '</p></div>');
 
                 var url = OC.generateUrl('/apps/metadata/get'),
@@ -38,13 +38,13 @@
         },
 
         canDisplay: function(fileInfo) {
-            if (!fileInfo || fileInfo.isDirectory() || !fileInfo.has('mimetype')) {
+            if (!fileInfo || fileInfo.isDirectory()) {
                 return false;
             }
-            var mimetype = fileInfo.get('mimetype');
+            var mimetype = fileInfo.get('mimetype') || '';
 
             return (['audio/flac', 'audio/mp4', 'audio/mpeg', 'audio/ogg', 'audio/wav',
-                'image/gif', 'image/jpeg', 'image/png', 'image/tiff', 'image/x-dcraw',
+                'image/gif', 'image/heic', 'image/jpeg', 'image/png', 'image/tiff', 'image/x-dcraw',
                 'video/3gpp', 'video/dvd', 'video/mp4', 'video/mpeg', 'video/quicktime',
                 'video/webm', 'video/x-flv', 'video/x-matroska', 'video/x-msvideo'].indexOf(mimetype) > -1);
         },
@@ -54,15 +54,18 @@
         },
 
         updateDisplay: function(data) {
-            var html = '';
+            var table;
             var showLocation = false;
 
             if (data.response === 'success') {
-                html += '<table>';
+                table = $('<table>');
 
                 var metadata = data.metadata;
                 for (m in metadata) {
-                    html += '<tr><td class="key">' + m + ':</td><td class="value">' + this.formatValue(metadata[m]) + '</td></tr>';
+                    var row = $('<tr>')
+                        .append($('<td>').addClass('key').text(m + ':'))
+                        .append($('<td>').addClass('value').text(this.formatValue(metadata[m])));
+                    table.append(row);
                 }
 
                 showLocation = (data.loc !== null) || ((data.lat !== null) && (data.lon !== null));
@@ -77,7 +80,7 @@
                         location = address.join(', ');
 
                     } else {
-                        location = t('metadata', 'Resolving, click here to view on map ...');
+                        location = t('metadata', 'Resolving, click here to view on map …');
                     }
 
                     if ((data.lat !== null) && (data.lon !== null)) {
@@ -101,16 +104,17 @@
                         });
                     }
 
-                    html += '<tr><td class="key">' + t('metadata', 'Location') + ':</td><td class="value"><a href="#" class="get-location">' + location + '</a></td></tr>';
+                    var row = $('<tr>')
+                        .append($('<td>').addClass('key').text(t('metadata', 'Location') + ':'))
+                        .append($('<td>').addClass('value').append($('<a>').attr('href', '#').addClass('get-location').text(location)));
+                    table.append(row);
                 }
 
-                html += '</table>';
-
             } else {
-                html = data.msg;
+                table = $('<p>').text(data.msg);
             }
 
-            this.$el.find('.get-metadata').html(html);
+            this.$el.find('.get-metadata').empty().append(table);
 
             if (showLocation) {
                 var _self = this;
@@ -157,6 +161,7 @@
             $(document.createElement('div'))
                 .prop('title', 'OpenStreetMap')
                 .css('background', 'url(' + OC.imagePath('core','loading.gif') + ') center center no-repeat')
+                .css('max-width', 'none')
                 .append(iframe)
                 .appendTo($('body'))
                 .ocdialog({
@@ -174,22 +179,22 @@
         },
 
         updateLocation: function(data) {
-            var html = '';
+            var text = '';
 
             if (data.error) {
-                html = data.error;
+                text = data.error;
 
             } else {
                 var location = data.address;
                 var address = [];
-                this.add(location.building || location.attraction || location.artwork || location.monument || location.viewpoint || location.house_number, address);
+                this.add(location.building || location.attraction || location.artwork || location.monument || location.viewpoint || location.museum || location.cafe || location.garden || location.aerodrome || location.address29 || location.house_number, address);
                 this.add(location.road || location.pedestrian || location.path || location.steps || location.footway || location.cycleway || location.bridleway || location.construction, address);
                 this.add(location.city || location.town || location.village || location.hamlet || location.isolated_dwelling, address);
                 this.add(location.country, address);
-                html = address.join(', ');
+                text = address.join(', ');
             }
 
-            this.$el.find('.get-location').html(html);
+            this.$el.find('.get-location').text(text);
         },
 
         add: function(val, array) {
